@@ -1,10 +1,62 @@
 <?php
-    if(isset($_POST['depart']) && isset($_POST['arrivee']))
+    if(isset($_POST['villeDepart']) && isset($_POST['villeArrivee']) && !empty($_POST['villeDepart']) && !empty($_POST['villeArrivee']))
     {
-        if(!empty($_POST['depart']) && !empty($_POST['arrivee']))
+        // input ville de départ
+        $villeDepart = $_POST['villeDepart'];
+        // input ville d'arrivée
+        $villeArrivee = $_POST['villeArrivee'];
+
+        //url de l'API concaténée avec les données renseignées dans mes deux input du dessus
+        $url = 'https://fr.distance24.org/route.json?stops=' . $_POST['villeDepart'] . '|' . $_POST['villeArrivee'];
+        // récupération du fichier json approprié en fonction de l'URL récupéré juste avant
+        $json = file_get_contents($url);
+        // décode le fichier json récupéré afin qu'il soit exploitable en PHP
+        $fichier_json = json_decode($json, true);
+        // récupère la distance dans le fichier json entre la ville de départ et d'arrivée
+        $distance = $fichier_json['distance'];
+
+        $distanceParcourue = 0;
+        $dureeSurLaRoute = 0;
+        $vitesse = 0;
+        $pause = false;
+        $nbPauses = 0;
+        $tempsAvantPause = 0;
+        $distanceParcourue = 0;
+
+        while ($distance > $distanceParcourue)
         {
-            $depart = $_POST['depart'];
-            $arrivee = $_POST['arrivee'];
+            if ($tempsAvantPause == 120)
+            {
+                $pause = true;
+            }
+
+            if ($pause == true)
+            {
+                $vitesse = 0;
+                $distanceParcourue += 6;
+                $dureeSurLaRoute += 24;
+                $pause = false;
+                $tempsAvantPause = 0;
+                $nbPauses += 1;
+            }
+            else
+            {
+                if ($vitesse < 90)
+                {
+                    $vitesse += 10;
+                    $distanceParcourue += $vitesse / 60;
+                    $dureeSurLaRoute += 1;
+                    $tempsAvantPause += 1;
+                }
+                else
+                {
+                    $distanceParcourue += $vitesse / 60;
+                    $dureeSurLaRoute += 1;
+                    $tempsAvantPause += 1;
+                }
+            }
+
+
         }
     }
 ?>
@@ -24,58 +76,62 @@
 
             <form action="index.php" method="POST" class="mb-5">
                 <div class="form-group">
-                    <input type="text" class="form-control mb-2" id="depart" name="depart" placeholder="Ville de départ">
+                    <input type="text" class="form-control mb-2" id="villeDepart" name="villeDepart" placeholder="Ville de départ">
                 </div>
                 <div class="form-group">
-                    <input type="text" class="form-control mb-2" id="arrivee" name="arrivee" placeholder="Ville d'arrivée">
+                    <input type="text" class="form-control mb-2" id="villeArrivee" name="villeArrivee" placeholder="Ville d'arrivée">
                 </div>
                 <button type="submit" class="btn btn-primary">Calculer</button>
             </form>
-
 
             <table class="table">
                 <thead>
                     <tr>
                         <th scope="col">Ville de départ</th>
-                        <th scope="col">Ville d'arrivé</th>
+                        <th scope="col">Ville d'arrivée</th>
                         <th scope="col">Distance</th>
                         <th scope="col">Temps de trajet</th>
+                        <th scope="col">Nombre de pauses</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <th>
+                        <td>
                             <?php
-                                if(isset($_POST['depart']))
+                                if(isset($_POST['villeDepart']))
                                 {
-                                    $depart = $_POST['depart'];
+                                    $depart = $_POST['villeDepart'];
                                     echo $depart;
                                 }
                             ?>
                         </th>
                         <td>
                             <?php
-                                if(isset($_POST['arrivee']))
+                                if(isset($_POST['villeArrivee']))
                                 {
-                                    $arrivee = $_POST['arrivee'];
+                                    $arrivee = $_POST['villeArrivee'];
                                     echo $arrivee;
                                 }
                             ?>
                         </td>
-                        <td>500km</td>
-                        <td>2h12</td>
-                    </tr>
-                    <tr>
-                        <th>2</th>
-                        <td>Jacob</td>
-                        <td>Thornton</td>
-                        <td>@fat</td>
-                    </tr>
-                    <tr>
-                        <th>3</th>
-                        <td>Larry</td>
-                        <td>the Bird</td>
-                        <td>@twitter</td>
+                        <td>
+                            <?php
+                                if(isset($distance))
+                                {
+                                    echo $distance . ' km';
+                                }
+                            ?>
+                        </td>
+                        <td>
+                            <?php
+                                echo date("H:i", $dureeSurLaRoute * 60);
+                            ?>
+                        </td>
+                        <td>
+                            <?php
+                                echo $nbPauses;
+                            ?>
+                        </td>
                     </tr>
                 </tbody>
             </table>
