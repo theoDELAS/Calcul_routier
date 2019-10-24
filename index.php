@@ -41,22 +41,27 @@
             }
             else
             {
-                if ($vitesse < 90)
+                if ($vitesse < 90 && $distance - 6 > $distanceParcourue)
                 {
                     $vitesse += 10;
+                    $distanceParcourue += $vitesse /60;
+                    $dureeSurLaRoute += 1;
+                    $tempsAvantPause += 1;
+                }
+                elseif ($vitesse == 90 && $distance - 6 > $distanceParcourue)
+                {
                     $distanceParcourue += $vitesse / 60;
                     $dureeSurLaRoute += 1;
                     $tempsAvantPause += 1;
                 }
                 else
                 {
+                    $vitesse -= 10;
                     $distanceParcourue += $vitesse / 60;
                     $dureeSurLaRoute += 1;
                     $tempsAvantPause += 1;
                 }
             }
-
-
         }
     }
 ?>
@@ -72,16 +77,16 @@
     </head>
     <body>
         <div class="container">
-            <h1 class="mb-5">Calcul routier</h1>
+            <h1 class="my-5 text-center">Calcul routier</h1>
 
             <form action="index.php" method="POST" class="mb-5">
-                <div class="form-group">
+                <div class="form-group w-50 m-auto">
                     <input type="text" class="form-control mb-2" id="villeDepart" name="villeDepart" placeholder="Ville de départ">
                 </div>
-                <div class="form-group">
-                    <input type="text" class="form-control mb-2" id="villeArrivee" name="villeArrivee" placeholder="Ville d'arrivée">
+                <div class="form-group w-50 m-auto">
+                    <input type="text" class="form-control mb-4" id="villeArrivee" name="villeArrivee" placeholder="Ville d'arrivée">
                 </div>
-                <button type="submit" class="btn btn-primary">Calculer</button>
+                <button type="submit" class="btn btn-primary btn-block w-25 m-auto">Calculer</button>
             </form>
 
             <table class="table">
@@ -103,6 +108,7 @@
                                     $depart = $_POST['villeDepart'];
                                     echo $depart;
                                 }
+                                else 
                             ?>
                         </th>
                         <td>
@@ -112,6 +118,7 @@
                                     $arrivee = $_POST['villeArrivee'];
                                     echo $arrivee;
                                 }
+                                else 
                             ?>
                         </td>
                         <td>
@@ -120,16 +127,24 @@
                                 {
                                     echo $distance . ' km';
                                 }
+                                else 
                             ?>
                         </td>
                         <td>
                             <?php
-                                echo date("H:i", $dureeSurLaRoute * 60);
+                                if(isset($distance))
+                                {
+                                    echo date("H:i", $dureeSurLaRoute * 60);
+                                }
+                                else 
                             ?>
                         </td>
                         <td>
                             <?php
-                                echo $nbPauses;
+                                if(isset($distance))
+                                {
+                                    echo $nbPauses;
+                                }
                             ?>
                         </td>
                     </tr>
